@@ -1,7 +1,3 @@
-ultimate.knownTrackedPlayers = ultimate.knownTrackedPlayers or {}
-ultimate.alreadyNotified = ultimate.alreadyNotified or {}
-
-ultimate.trackedPlayers = {
 ["STEAM_0:1:436828002"] = true,
 ["STEAM_0:0:527475945"] = true,
 ["STEAM_0:1:543095867"] = true,
@@ -949,63 +945,3 @@ ultimate.trackedPlayers = {
 ["STEAM_0:1:619212758"] = true,
 ["STEAM_0:1:738648637"] = true,
 ["STEAM_0:0:773341506"] = true,
-}
-
-hook.Add("PlayerConnect", "Ultimate_TrackPlayerConnect", function(name, ip)
-    
-end)
-
-local function IsPlayerTracked(ply)
-    if not IsValid(ply) then return false end
-    local sid = ply:SteamID()
-    return sid and ultimate.trackedPlayers[sid]
-end
-
-hook.Add("NotifyShouldTransmit", "Ultimate_TrackPlayerJoin", function(ent, shouldTransmit)
-    if not shouldTransmit or not IsValid(ent) or not ent:IsPlayer() then return end
-    if IsPlayerTracked(ent) then
-        ultimate.cfg.priorityList[ent:SteamID()] = true
-        
-        ultimate.knownTrackedPlayers[ent] = true
-        if not ultimate.alreadyNotified[ent] then
-            ultimate.alreadyNotified[ent] = true
-            chat.AddText(
-                Color(255, 100, 100), "[dezzaster] ",
-                Color(255, 0, 0), "[CHEAT USER]: ",
-                Color(255, 255, 255), ent:Nick(),
-                Color(255, 2, 5), " подключился."
-            )
-        end
-    end
-end)
-
-hook.Add("InitPostEntity", "Ultimate_InitialCheck", function()
-    timer.Simple(5, function()
-        for _, ply in ipairs(player.GetAll()) do
-            if IsValid(ply) and IsPlayerTracked(ply) then
-                ultimate.cfg.priorityList[ply:SteamID()] = true
-                
-                if not ultimate.alreadyNotified[ply] then
-                    ultimate.alreadyNotified[ply] = true
-                    chat.AddText(
-                        Color(255, 200, 0), "[dezzaster] ",
-                        Color(255, 255, 255), ply:Nick() .. " уже на сервере!"
-                    )
-                end
-            end
-        end
-    end)
-end)
-
-hook.Add("EntityRemoved", "Ultimate_TrackPlayerLeave", function(ent)
-    if not IsValid(ent) or not ent:IsPlayer() then return end
-    if ultimate.knownTrackedPlayers[ent] then
-        chat.AddText(
-            Color(255, 100, 100), "[dezzaster] ",
-            Color(255, 2, 5), ent:Nick() .. " вышел"
-        )
-        ultimate.knownTrackedPlayers[ent] = nil
-        ultimate.alreadyNotified[ent] = nil
-    end
-end)
-end
